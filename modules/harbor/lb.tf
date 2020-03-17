@@ -26,6 +26,8 @@ resource "aws_security_group" "harbor_lb_security_group" {
   }
 
   tags = "${merge(var.tags, map("Name", "${var.env_name}-harbor-lb-security-group"))}"
+
+  count = "${var.enabled ? 1:0}"
 }
 
 resource "aws_lb" "harbor" {
@@ -34,6 +36,8 @@ resource "aws_lb" "harbor" {
   enable_cross_zone_load_balancing = true
   internal                         = false
   subnets                          = ["${var.public_subnet_ids}"]
+
+  count = "${var.enabled ? 1:0}"
 }
 
 resource "aws_lb_listener" "harbor_443" {
@@ -46,7 +50,7 @@ resource "aws_lb_listener" "harbor_443" {
     target_group_arn = "${aws_lb_target_group.harbor_443.arn}"
   }
 
-  count = "${vars.enabled ? 1:0}"
+  count = "${var.enabled ? 1:0}"
 }
 
 resource "aws_lb_target_group" "harbor_443" {
@@ -62,7 +66,7 @@ resource "aws_lb_target_group" "harbor_443" {
     protocol            = "TCP"
   }
 
-  count = "${vars.enabled ? 1:0}"
+  count = "${var.enabled ? 1:0}"
 }
 
 resource "aws_lb_listener" "harbor_4443" {
@@ -75,7 +79,7 @@ resource "aws_lb_listener" "harbor_4443" {
     target_group_arn = "${aws_lb_target_group.harbor_4443.arn}"
   }
 
-  count = "${vars.enabled ? 1:0}"
+  count = "${var.enabled ? 1:0}"
 }
 
 resource "aws_lb_target_group" "harbor_4443" {
@@ -83,5 +87,5 @@ resource "aws_lb_target_group" "harbor_4443" {
   port     = 8443
   protocol = "TCP"
   vpc_id   = "${var.vpc_id}"
-  count    = "${vars.enabled ? 1:0}"
+  count    = "${var.enabled ? 1:0}"
 }
