@@ -9,5 +9,5 @@ resource "aws_route53_record" "harbor_dns" {
     evaluate_target_health = true
   }
 
-  count = "${var.use_route53}"
+  count = "${var.use_route53 && vars.enabled ? 1: 0}"
 }
