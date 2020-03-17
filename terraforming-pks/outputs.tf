@@ -239,9 +239,9 @@ output "harbor_target_groups" {
 }
 
 output "harbor_lb_security_group_id" {
-  value = "${module.harbor.harbor_lb_security_group_id}"
+  value = "${module.harbor.harbor_lb_security_group_id[0]}"
 }
 
 output "harbor_lb_security_group_name" {
-  value = "${module.harbor.harbor_lb_security_group_name}"
+  value = "${module.harbor.harbor_lb_security_group_name[0]}"
 }
