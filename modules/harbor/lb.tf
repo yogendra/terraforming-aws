@@ -45,6 +45,8 @@ resource "aws_lb_listener" "harbor_443" {
     type             = "forward"
     target_group_arn = "${aws_lb_target_group.harbor_443.arn}"
   }
+
+  count = "${vars.enabled ? 1:0}"
 }
 
 resource "aws_lb_target_group" "harbor_443" {
@@ -59,6 +61,8 @@ resource "aws_lb_target_group" "harbor_443" {
     interval            = 10
     protocol            = "TCP"
   }
+
+  count = "${vars.enabled ? 1:0}"
 }
 
 resource "aws_lb_listener" "harbor_4443" {
@@ -70,6 +74,8 @@ resource "aws_lb_listener" "harbor_4443" {
     type             = "forward"
     target_group_arn = "${aws_lb_target_group.harbor_4443.arn}"
   }
+
+  count = "${vars.enabled ? 1:0}"
 }
 
 resource "aws_lb_target_group" "harbor_4443" {
@@ -77,4 +83,5 @@ resource "aws_lb_target_group" "harbor_4443" {
   port     = 8443
   protocol = "TCP"
   vpc_id   = "${var.vpc_id}"
+  count    = "${vars.enabled ? 1:0}"
 }
