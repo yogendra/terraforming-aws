@@ -41,6 +41,11 @@ product-properties:
 {{indent 8 .ssl_cert}}
       private_key_pem: |
 {{indent 8 .ssl_private_key}}
+{{if index . "terraforming_ca_cert"}}
+  .properties.server_cert_ca: 
+    value: |
+{{indent 6 .terraforming_ca_cert}} 
+{{end}}
   .properties.vm_monitor:
     selected_option: no_monitor
     value: no_monitor

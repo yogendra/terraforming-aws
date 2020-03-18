@@ -45,6 +45,10 @@ main() {
     cat /tmp/env-state/metadata | jq --arg rds_ca_cert "$rds_ca_cert" '. + {"rds_ca_cert": $rds_ca_cert}' > /tmp/env-state/metadata_tmp
 		mv /tmp/env-state/metadata{_tmp,}
 
+    if [[ -n $CA_CERT ]]; then
+      cat /tmp/env-state/metadata | jq --arg terraformingca "${CA_CERT}" '. + {terraforming_ca_cert: $terraformingca}' > /tmp/env-state/metadata_tmp
+      mv /tmp/env-state/metadata{_tmp,}
+    fi
     export PRODUCT=${product}
 
     om -k configure-product \
