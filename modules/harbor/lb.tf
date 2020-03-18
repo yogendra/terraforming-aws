@@ -84,7 +84,7 @@ resource "aws_lb_listener" "harbor_4443" {
 
 resource "aws_lb_target_group" "harbor_4443" {
   name     = "${var.env_name}-harbor-tg-4443"
-  port     = 8443
+  port     = 4443
   protocol = "TCP"
   vpc_id   = "${var.vpc_id}"
   count    = "${var.enabled ? 1:0}"
