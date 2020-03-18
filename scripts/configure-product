@@ -18,8 +18,11 @@ main() {
     cf)
       product_template=$PROJECT_DIR/ci/assets/template/srt-config.yml
       ;;
-    pivotal-container-service)
+    pks|pivotal-container-service)
       product_template=$PROJECT_DIR/ci/assets/template/pks-config.yml
+      ;;
+    harbor|harbor-container-registry)
+      product_template=$PROJECT_DIR/ci/assets/template/harbor-config.yml
       ;;
     control-plane)
       product_template=$PROJECT_DIR/ci/assets/template/control-plane-config.yml
