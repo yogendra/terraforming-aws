@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+
+if [[ $# -lt 2 ]]; then
+    cat <<EOF
+om-install product-slug filename [version]
+EOF
+    exit 1
+fi
+
+product=$1
+fileglob=$2
+[[ -z $product ]] && echo "Error: Product name not provided" && exit 1
+[[ -z $fileglob ]] && echo "Error: File globe not provided" && exit 1
+
+version=${3:-`pivnet rs -p $product -l 1 -o json | jq -r '.[0].version'`}
+[[ -z $version ]] && echo "Error: Version not set" && exit 1
+
+PCF_IAAS=${PCF_IAAS:-google}
+PCF_TILES_DIR=${PCF_TILES_DIR:-$HOME/workspace/tiles}
+[[ -z $PCF_IAAS ]] && echo "Error: PCF_IAAS not given" && exit 1
+[[ -z $PCF_TILES_DIR ]] && echo "Error: PCF_TILES_DIR not set" && exit 1
+
+[[ -z $OM_PIVNET_TOKEN ]] && "Error: OM_PIVNET_TOKEN not set" && exit
+
+
+echo "Download $product :: $version ($fileglob)"
+PRODUCT_TILE_DIR=$PCF_TILES_DIR/$1
+set -e
+mkdir -p $PRODUCT_TILE_DIR
+om download-product -p $product -v $version -f $fileglob --download-stemcell --stemcell-iaas $PCF_IAAS --output-directory $PRODUCT_TILE_DIR --pivnet-api-token $OM_PIVNET_TOKEN
+download_file=$PRODUCT_TILE_DIR/download-file.json
+assign_stemcell_path=$PRODUCT_TILE_DIR/assign-stemcell.yml
+tile_path=$(jq -r '.product_path' $download_file)
+tile_version=$(jq -r '.product_version' $download_file)
+tile_slug=$(jq -r '.product_slug' $download_file)
+stemcell_path=$(jq -r '.stemcell_path' $download_file)
+stemcell_version=$(jq -r '.stemcell' $assign_stemcell_path)
+om -k upload-product -p $tile_path  
+[[ -n $stemcell_path ]] && om -k upload-stemcell  -s $stemcell_path    
+on stage-product -p $tile_slug -v $tile_version
