@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+script=$0
+product=$1
+if [[ -z $product ]]; then
+    $script bosh
+    
+    om staged-products -f json | jq  -r  '.[].name' | grep -v p-bosh | while read product
+    do
+        $script $product
+    done
+elif [[ $product == "bosh" ]]
+then
+    om staged-director-config --no-redact > director.yaml
+    om staged-director-config --no-redact --include-placeholders > template-director.yaml
+else
+    om staged-config -p $product --include-credentials > $product.yaml
+    om staged-config -p $product --include-credentials --include-placeholders > template-$product.yaml
+fi
