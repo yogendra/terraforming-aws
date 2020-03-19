@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+
+# Take om password as input
+# Setup .env-pcf file with Om and Bosh
+
+authenticate_om() {
+    export OM_TARGET
+
+  OM_TARGET="https://$(terraform output ops_manager_dns)"
+  export OM_USERNAME="admin"
+  export OM_PASSWORD="$1"
+}
+
+main() {
+    local path=${1?"Path is required (e.g. terraforming-pas, terraforming-pks, terraforming-control-plane)"}
+    local password=${2?"OpsManager password is required."}
+    local config_dir=$PROJECT_DIR/.config
+    mkdir -p $config_dir
+
+    local env_pcf=$PROJECT_DIR/.env-pcf
+    local env_bosh=$PROJECT_DIR/.env-bosh
+
+    pushd $PROJECT_DIR/$path > /dev/null
+        authenticate_om "${password}"
+
+
+        local bosh_ca_cert=$config_dir/bosh_ca_cert.pem        
+        om --skip-ssl-validation \
+            certificate-authorities \
+            -f json | \
+            jq -r '.[] | select(.active==true) | .cert_pem' > $bosh_ca_cert 
+        chmod 600 $bosh_ca_cert
+
+        om -k curl \
+            -s \
+            -p /api/v0/deployed/director/credentials/bosh_commandline_credentials | \
+            jq '.credential' -r | \
+            sed -E 's/bosh//' | tr " " \\n | sed 's/^BOSH/export BOSH/' | \
+            grep -v BOSH_CA_CERT > $env_bosh
+        echo "export BOSH_CA_CERT=$bosh_ca_cert" >> $env_bosh
+        
+
+        local om_key=$config_dir/om-key.pem
+        terraform output ops_manager_ssh_private_key > $om_key
+        chmod 600 $om_key
+
+        local pcf_domain=$(terraform output ops_manager_dns | sed 's/^pcf.//')
+
+        local pks_home=$config_dir/pks
+        mkdir -p $pks_home
+
+        local pks_ca_cert=$pks_home/ca_cert.pem
+        om -k credentials \
+            --product-name pivotal-container-service \
+            --credential-reference .pivotal-container-service.pks_tls \
+            --credential-field cert_pem \
+            > $pks_ca_cert
+
+        local pks_api=api.pks.\$pcf_domain
+
+        local uaac_home=$config_dir/uaac
+        mkdir -p $uaac_home
+
+        local cf_home=$config_dir/cf
+        mkdir -p $cf_home
+
+        local kube_home=$config_dir/kube
+        mkdir -p $kube_home
+        local kubeconfig=$kube_home/config
+
+        local helm_home=$config_dir/helm
+        mkdir -p $helm_home
+
+
+        cat <<EOF > $env_pcf
+export CONFIG_DIR=$config_dir
+export PCF_DOMAIN=$pcf_domain
+export PCF_IAAS=aws
+export PCF_TILES_DIR=$PROJECT_DIR/tiles
+
+export OM_TARGET=pcf.$pcf_domain
+export OM_SKIP_SSL_VALIDATION=true
+export OM_USERNAME=admin
+export OM_PASSWORD=$password
+export OM_DECRYPTION_PASSPHRASE=\$OM_PASSWORD
+export OM_KEY=$om_key
+
+export PKS_API=$pks_api
+export PKS_HOME=$pks_home
+export PKS_API_CA_CERT=$pks_ca_cert
+
+export BOSH_ALL_PROXY="ssh+socks5://ubuntu@\$OM_TARGET:22?private-key=$om_key"
+export BOSH_CA_CERT=$bosh_ca_cert
+
+export UAAC_HOME=$uaac_home
+export CF_HOME=$cf_home
+
+export KUBE_HOME=$kube_home
+export KUBECONFIG=$kubeconfig
+export HELM_HOME=$helm_home
+EOF
+
+
+    popd > /dev/null
+}
+
+main "$@"
