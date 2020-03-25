@@ -56,7 +56,7 @@ main() {
             --credential-field cert_pem \
             > $pks_ca_cert
 
-        local pks_api=api.pks.\$pcf_domain
+        local pks_api=api.pks.$pcf_domain
 
         local uaac_home=$config_dir/uaac
         mkdir -p $uaac_home
