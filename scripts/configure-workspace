@@ -4,7 +4,7 @@
 # Setup .env-pcf file with Om and Bosh
 
 authenticate_om() {
-    export OM_TARGET
+  export OM_TARGET
 
   OM_TARGET="https://$(terraform output ops_manager_dns)"
   export OM_USERNAME="admin"
@@ -14,6 +14,9 @@ authenticate_om() {
 main() {
     local path=${1?"Path is required (e.g. terraforming-pas, terraforming-pks, terraforming-control-plane)"}
     local password=${2?"OpsManager password is required."}
+    local pivnet_token=${2?"Pivnet API Token is required"}
+    local pivnet_legacy_token=${2?"Pivnet Legacy Token is required"}
+    
     local config_dir=$PROJECT_DIR/.config
     mkdir -p $config_dir
 
@@ -98,6 +101,9 @@ export CF_HOME=$cf_home
 export KUBE_HOME=$kube_home
 export KUBECONFIG=$kubeconfig
 export HELM_HOME=$helm_home
+export PIVNET_TOKEN=$pivnet_token
+export PIVNET_LEGACY_TOKEN=$pivnet_legacy_token
+export OM_PIVNET_TOKEN=$pivnet_legacy_token
 EOF
 
 
