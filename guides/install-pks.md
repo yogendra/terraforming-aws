@@ -229,10 +229,8 @@
 1.  Configure local workspace
 
     ```bash
-    scripts/configure-workspace terraforming-pks $OM_PASSWORD
+    scripts/configure-workspace terraforming-pks $OM_PASSWORD $PIVNET_API_TOKEN $PIVNET_LEGACY_TOKEN
     ```
-
-#
 
 [pcf-jumpbox]: https://github.com/yogendra/dotfiles/blob/master/scripts/pcf-jumpbox-init.sh
 [pcf-opsman-aws]: https://docs.pivotal.io/platform/ops-manager/2-8/aws/prepare-env-terraform.html#prereqs
